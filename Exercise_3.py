@@ -11,7 +11,7 @@ Example 3: Input: pattern = "aaaa", str = "dog cat cat dog" Output: false
 
 Example 4: Input: pattern = "abba", str = "dog dog dog dog" Output: false Notes: You may assume pattern contains only lowercase letters, and str contains lowercase letters that may be separated by a single space.
 
-Assume there are N characters in the pattern and M words in the string.
+Assume there are N characters in the pattern, N words in the str, and avg of M chars per word. Hence, there are NM characters in str.
 
 Solution:
 1. Brute Force: This is similar to the isomorphic strings problem. At each index i, note the character c = pattern[i] and word w = str[i]. Now, check if this (character, word) = (c,w) pair has already been encountered at a previous index j. We can do this by traversing to the left (j = i-1, i-2, ..., 0) and checking:
@@ -22,12 +22,19 @@ Solution:
     Since for each i, 0<=i<=N-1, we traverse j=0,..,i-1, the time complexity is O(N^2).
 Time: O(N^2), Space: O(1)
 
-2. Hashing: We use two hashmaps, one each for c2w  (char2word) and w2c (word2char). For c2w, the keys are the characters in pattern and the corresponding values are words in str. For w2c, the keys are the words in str and the corresponding values are chars in pattern. Why can't we use only one hashmap instead of two? Ans: To establish bijection.
+2. Hashing using two maps:
+We use two hashmaps, one each for c2w  (char2word) and w2c (word2char). For c2w, the keys are the characters in pattern and the corresponding values are words in str. For w2c, the keys are the words in str and the corresponding values are chars in pattern. Why can't we use only one hashmap instead of two? Ans: To establish bijection.
 Eg. pattern = abbc, str = "dog cat cat dog", then c2w = {a:dog,b:cat,c:dog} (assume only one hash map). Thus, we can convert pattern->str. But for a bijection map, we should be able to convert pattern->str and str->pattern as well. For each word in str, we read the value in c2w and output the corresponding key.  Thus, for the value 'dog', we have two keys
 a and c (c2w[a] = dog, c2w[c] = dog). We are unable to choose which key to select because of the many-to-one mapping. Hence, the mapping is not a bijection.
-Time: O(N), Space: O(26 + M) = O(M)
+Time: O(NM), Space: O(26 + N) = O(N) (size of word2char map = N since there are N words)
 
 (Note: Space is not O(N + M) because the size of the hash map is restricted to the no. of lowercase letters in pattern which is not dependent on the length of the pattern)
+
+3. Hashing using a single map:
+    Use separate keys for storing elements from pattern and str.
+    Eg. lettter 'a' from pattern: key = pat_a
+        word 'dog' from str: key = str_b
+Time: O(NM), Space: O(26 + N) = O(N)
 '''
 from collections import defaultdict
 
@@ -38,7 +45,7 @@ def generate_next_word(sent):
     def whitespace(w): # word/char is a whitespace?
         return w.isspace()
 
-    K = len(sent)
+    K = len(sent) # K = NM
     i = 0
     word =""
     while i < K:
@@ -59,8 +66,10 @@ def word_pattern(pattern, strings):
     c2w = defaultdict(str) # character to word map
     w2c = defaultdict(str) # word to character map
     get_word = generate_next_word(strings)
+    # Instead of a generator, it is ok to use split()
+    # strings.split(' ')
     for tgt_char in pattern: # O(N)
-        tgt_word = next(get_word)
+        tgt_word = next(get_word) # O(M)
 
         w = c2w[tgt_char] # Time: O(1), Space: O(26) = O(1)
         if not w: # w is an empty string
